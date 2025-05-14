@@ -2,9 +2,19 @@ import React, { createContext, useContext, useState } from 'react';
 import localStorage from '@react-native-async-storage/async-storage';
 import { InPlanet } from '../components/PlanetCard';
 
+interface PlanetProviderProps {
+  planetList: InPlanet[],
+  setPlanetList: any,
+  loadPlanets: (dataFromAPI: InPlanet[]) => Promise<void>,
+  addToFavorites: (planet: InPlanet) => Promise<void>,
+  removeFromFavorites: (planet: InPlanet) => Promise<void>,
+  toggleFavorite: (planet: InPlanet) => Promise<void>,
+  getFavorites: () => void,
+}
+
 // Clave de la lista de favoritos en el storage
 const FAVORITES_KEY = 'favorites';
-export const PlanetContext = createContext({} as any);
+export const PlanetContext = createContext({} as PlanetProviderProps);
 export const usePlanets = () => useContext(PlanetContext);
 
 export const PlanetProvider = ({children}: any) => {
