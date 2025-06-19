@@ -1,13 +1,23 @@
 /* eslint-disable react-hooks/exhaustive-deps */
-import { ActivityIndicator, Image, SafeAreaView, ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
-import React, { useEffect, useState } from 'react';
-import { useRoute } from '@react-navigation/native';
-import { getPlanetDetails } from '../../services/findPlanets';
-import { colors } from '../../constants/colors';
+import {
+  ActivityIndicator,
+  Image,
+  SafeAreaView,
+  ScrollView,
+  StyleSheet,
+  Text,
+  TouchableOpacity,
+  View,
+} from 'react-native';
+import React, {useEffect, useState} from 'react';
+import {useRoute} from '@react-navigation/native';
+import {getPlanetDetails} from '../../services/findPlanets';
+import {colors} from '../../constants/colors';
 import planetImages from './planetImages';
-import { usePlanets } from '../../providers/PlanetProvider';
+import {usePlanets} from '../../providers/PlanetProvider';
+import {InPlanetCard} from '../../components/PlanetCard';
 
-export interface PlanetData {
+export interface InPlanetDetail {
   id: string;
   name: string;
   englishName: string;
@@ -18,7 +28,7 @@ export interface PlanetData {
   gravity: number;
   meanRadius: number;
   avgTemp: number;
-  moons: Array<{ moon: string }>;
+  moons: Array<{moon: string}>;
   semimajorAxis: number;
 }
 
@@ -26,25 +36,16 @@ const PlanetDetailsScreen = () => {
   const {params} = useRoute();
   const query = params as any;
   const [loading, setLoading] = useState(true);
-  const [data, setData] = useState<PlanetData | null>();
-  const { addToFavorites, removeFromFavorites, getFavorites } = usePlanets();
+  const [data, setData] = useState<InPlanetDetail | null>();
+  const {getFavorites, toggleFavorite} = usePlanets();
 
   const favoritePlanets = getFavorites();
-  const isFavorite = data && favoritePlanets.some((planet: PlanetData) => planet.id === data.id);
+  const isFavorite =
+    (data?.id &&
+      favoritePlanets.some((planet: InPlanetCard) => planet.id === data.id)) ||
+    false;
 
-  const handleAddToFavorites = () => {
-    if (data) {
-      addToFavorites(data);
-    }
-  };
-
-  const handleRemoveFavorites = () => {
-    if (data) {
-      removeFromFavorites(data);
-    }
-  };
-
-  const fetchDetails = async (id: string) =>  {
+  const fetchDetails = async (id: string) => {
     setLoading(true);
     const response = await getPlanetDetails(id);
     setData(response);
@@ -68,7 +69,9 @@ const PlanetDetailsScreen = () => {
   const errorView = () => {
     return (
       <View style={styles.errorContainer}>
-        <Text style={styles.errorText}>{"We couldn't load the data. Please try again later."}</Text>
+        <Text style={styles.errorText}>
+          {"We couldn't load the data. Please try again later."}
+        </Text>
       </View>
     );
   };
@@ -76,70 +79,81 @@ const PlanetDetailsScreen = () => {
   return (
     <SafeAreaView style={styles.baseContainer}>
       <ScrollView contentContainerStyle={styles.container}>
-      {
-        !data ? (
+        {!data ? (
           errorView()
-        )
-        :
-        (
+        ) : (
           <View>
-            { planetImages[data.englishName] &&
+            {planetImages[data.englishName] && (
               <Image
-                source={{ uri: planetImages[data.englishName] }}
+                source={{uri: planetImages[data.englishName]}}
                 style={styles.image}
               />
-            }
+            )}
             <Text style={styles.title}>{data.englishName}</Text>
 
-            {
-              isFavorite ?
-              <TouchableOpacity style={styles.btn} onPress={handleRemoveFavorites}>
-                <Text style={styles.btnText}>{'Remove from my Favorites'}</Text>
-              </TouchableOpacity>
-              :
-              <TouchableOpacity style={styles.btn} onPress={handleAddToFavorites}>
-                <Text style={styles.btnText}>{'Add to my Favorites'}</Text>
-              </TouchableOpacity>
-            }
+            <TouchableOpacity
+              style={styles.btn}
+              onPress={() => toggleFavorite(data.id, isFavorite)}>
+              <Text style={styles.btnText}>
+                {isFavorite
+                  ? 'Remove from my Favorites'
+                  : 'Add to my Favorites'}
+              </Text>
+            </TouchableOpacity>
 
             <View style={styles.content}>
               <View style={styles.info}>
                 <Text style={styles.bold}>{'Mass:'}</Text>
                 <Text style={styles.text}>
-                  {data.mass.massValue}{' × 10^'}{data.mass.massExponent}
+                  {data.mass.massValue}
+                  {' × 10^'}
+                  {data.mass.massExponent}
                 </Text>
               </View>
 
               <View style={styles.info}>
                 <Text style={styles.bold}>{'Gravity:'}</Text>
-                <Text style={styles.text}>{data.gravity}{' m/s^2'}</Text>
+                <Text style={styles.text}>
+                  {data.gravity}
+                  {' m/s^2'}
+                </Text>
               </View>
 
               <View style={styles.info}>
                 <Text style={styles.bold}>{'Average Temperature:'}</Text>
-                <Text style={styles.text}>{data.avgTemp}{' °C'}</Text>
+                <Text style={styles.text}>
+                  {data.avgTemp}
+                  {' °C'}
+                </Text>
               </View>
 
               <View style={styles.info}>
                 <Text style={styles.bold}>{'Mean Radius:'}</Text>
-                <Text style={styles.text}>{data.meanRadius}{' km'}</Text>
+                <Text style={styles.text}>
+                  {data.meanRadius}
+                  {' km'}
+                </Text>
               </View>
 
               <View style={styles.info}>
                 <Text style={styles.bold}>{'Distance from Sun:'}</Text>
-                <Text style={styles.text}>{data.semimajorAxis}{' km'}</Text>
+                <Text style={styles.text}>
+                  {data.semimajorAxis}
+                  {' km'}
+                </Text>
               </View>
 
               <View style={styles.infoMoons}>
                 <Text style={[styles.bold, styles.boldMoons]}>{'Moons:'}</Text>
                 <Text style={styles.text}>
-                    {data.moons?.length > 0 ? data.moons.map(moon => moon.moon).join(', ') : 'No moons listed'}
+                  {data.moons?.length > 0
+                    ? data.moons.map(moon => moon.moon).join(', ')
+                    : 'No moons listed'}
                 </Text>
               </View>
             </View>
           </View>
-        )
-      }
+        )}
       </ScrollView>
     </SafeAreaView>
   );

@@ -1,7 +1,7 @@
 /* eslint-disable react-hooks/exhaustive-deps */
 import { FlatList, RefreshControl, SafeAreaView, StyleSheet, Text, TextInput, TouchableOpacity, View } from 'react-native';
 import React, { useEffect, useState } from 'react';
-import PlanetCard, { InPlanet } from '../../components/PlanetCard';
+import PlanetCard, { InPlanetCard } from '../../components/PlanetCard';
 import { useNavigation } from '@react-navigation/native';
 import { getPlanets } from '../../services/findPlanets';
 import FontAwesomeIcon from 'react-native-vector-icons/FontAwesome';
@@ -39,7 +39,7 @@ const PlanetsScreen = () => {
     const newOrder = order === 'asc' ? 'desc' : 'asc';
     setOrder(newOrder);
 
-    const sorted = [...planetList].sort((a: InPlanet, b: InPlanet) => {
+    const sorted = [...planetList].sort((a: InPlanetCard, b: InPlanetCard) => {
       if (newOrder === 'asc') {return a.englishName.localeCompare(b.englishName);}
       else {return b.englishName.localeCompare(a.englishName);}
     });
@@ -131,7 +131,7 @@ const PlanetsScreen = () => {
         renderItem={({item}) => (
           <PlanetCard {...item}
             onPress={() => goToDetails(item.id)}
-            onPressFavorite={() => toggleFavorite(item)}/>
+            onPressFavorite={() => toggleFavorite(item.id, item.isFavorite)}/>
         )}
       />
     </SafeAreaView>
@@ -145,12 +145,12 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: colors.backgroundColor,
   },
-  list: {
-    padding: 14,
-    backgroundColor: colors.backgroundColor,
-    alignItems: 'center',
-    gap: 16,
-  },
+    list: {
+      padding: 14,
+      backgroundColor: colors.backgroundColor,
+      alignItems: 'center',
+      gap: 16,
+    },
   title: {
     color: colors.textPrimary,
     fontWeight: 'bold',
