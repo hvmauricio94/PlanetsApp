@@ -4,6 +4,10 @@ import PlanetDetailsScreen from '../screens/PlanetsScreen/PlanetDetailsScreen';
 import TabStack from './tabStack';
 import { colors } from '../constants/colors';
 
+export type StackParamList = {
+  PlanetDetails: { planetId: string; }
+};
+
 const GeneralStack = () => {
   const Stack = createNativeStackNavigator();
 
@@ -16,7 +20,7 @@ const GeneralStack = () => {
         headerTintColor: '#FFFFFF',
       }}>
       <Stack.Screen name="Tabs" component={TabStack} />
-      <Stack.Screen name="PlanetDetails" component={PlanetDetailsScreen} />
+      <Stack.Screen name="PlanetDetails" component={PlanetDetailsScreen} initialParams={{ planetId: ''}} />
     </Stack.Navigator>
   );
 };

@@ -7,6 +7,11 @@ import { StyleSheet } from 'react-native';
 import { colors } from '../constants/colors';
 import Favorites from '../screens/Favorites/Favorites';
 
+export type TabStackParamList = {
+  PlanetList: undefined;
+  Favorites: undefined;
+};
+
 const Tab = createBottomTabNavigator();
 
 const getIconTab = (name: string,focused: boolean) => {
@@ -46,18 +51,20 @@ const TabStack = () => {
         }}
         >
             <Tab.Screen
-            name="Planet List"
+            name="PlanetList"
             component={PlanetsScreen}
             options={{
+                title: 'Planet List',
                 tabBarIcon: ({focused}) => (
                     getIconTab('planet', focused)
                 ),
             }}
             />
             <Tab.Screen
-            name="My Favorites"
+            name="Favorites"
             component={Favorites}
             options={{
+                title: 'My Favorites',
                 tabBarIcon: ({focused}) => (
                     getIconTab('heart', focused)
                 ),
