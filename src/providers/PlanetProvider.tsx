@@ -1,13 +1,15 @@
-import React, {createContext, useContext, useState} from 'react';
+import React, { createContext, useContext, useState } from 'react';
 import localStorage from '@react-native-async-storage/async-storage';
-import {InPlanetCard} from '../components/PlanetCard';
+import { InPlanet } from '../components/PlanetCard';
 
 interface PlanetProviderProps {
-  planetList: InPlanetCard[];
-  setPlanetList: any;
-  loadPlanets: (dataFromAPI: InPlanetCard[]) => Promise<void>;
-  toggleFavorite: (planetId: string, isFavorite: boolean) => Promise<void>;
-  getFavorites: () => InPlanetCard[];
+  planetList: InPlanet[],
+  setPlanetList: any,
+  loadPlanets: (dataFromAPI: InPlanet[]) => Promise<void>,
+  addToFavorites: (planet: InPlanet) => Promise<void>,
+  removeFromFavorites: (planet: InPlanet) => Promise<void>,
+  toggleFavorite: (planet: InPlanet) => Promise<void>,
+  getFavorites: () => void,
 }
 
 // Clave de la lista de favoritos en el storage
@@ -16,7 +18,7 @@ export const PlanetContext = createContext({} as PlanetProviderProps);
 export const usePlanets = () => useContext(PlanetContext);
 
 export const PlanetProvider = ({children}: any) => {
-  const [planetList, setPlanetList] = useState<InPlanetCard[]>([]);
+    const [planetList, setPlanetList] = useState<InPlanet[]>([]);
 
   // Leer favoritos del storage
   const loadFavorites = async () => {
@@ -30,7 +32,7 @@ export const PlanetProvider = ({children}: any) => {
   };
 
   // Guardar favoritos actualizados al storage
-  const saveFavorites = async (favorites: string[]) => {
+  const saveFavorites = async (favorites: InPlanet[]) => {
     try {
       await localStorage.setItem(FAVORITES_KEY, JSON.stringify(favorites));
     } catch (error) {
@@ -39,8 +41,9 @@ export const PlanetProvider = ({children}: any) => {
   };
 
   // Cargar planetas y marcar los favoritos
-  const loadPlanets = async (dataFromAPI: InPlanetCard[]) => {
-    const favoriteIds = await loadFavorites();
+  const loadPlanets = async (dataFromAPI: InPlanet[]) => {
+    const favorites = await loadFavorites();
+    const favoriteIds = favorites.map((p: InPlanet) => p.id);
 
     const updatedList = dataFromAPI.map(planet => ({
       ...planet,
@@ -50,38 +53,37 @@ export const PlanetProvider = ({children}: any) => {
     setPlanetList(updatedList);
   };
 
-  // Agregar favorito por ID
-  const addToFavorites = async (planetId: string, isFavorite: boolean) => {
-    const favoriteIds = await loadFavorites();
-    if (!isFavorite) {
-      const updatedFavorites = [...favoriteIds, planetId];
+  // Agregar favorito
+  const addToFavorites = async (planet: InPlanet) => {
+    const favorites = await loadFavorites();
+    const exists = favorites.some((p: InPlanet) => p.id === planet.id);
+    if (!exists) {
+      const updatedFavorites = [...favorites, planet];
       await saveFavorites(updatedFavorites);
     }
 
     setPlanetList(prev =>
-      prev.map(p => (p.id === planetId ? {...p, isFavorite: true} : p)),
+      prev.map(p => p.id === planet.id ? { ...p, isFavorite: true } : p)
     );
   };
 
-  // Quitar favorito por ID
-  const removeFromFavorites = async (planetId: string) => {
-    const favoriteIds = await loadFavorites();
-    const updatedFavorites = favoriteIds.filter(
-      (id: string) => id !== planetId,
-    );
+  // Quitar favorito
+  const removeFromFavorites = async (planet: InPlanet) => {
+    const favorites = await loadFavorites();
+    const updatedFavorites = favorites.filter((p: InPlanet) => p.id !== planet.id);
     await saveFavorites(updatedFavorites);
 
     setPlanetList(prev =>
-      prev.map(p => (p.id === planetId ? {...p, isFavorite: false} : p)),
+      prev.map(p => p.id === planet.id ? { ...p, isFavorite: false } : p)
     );
   };
 
   // Toggle favorito
-  const toggleFavorite = async (planetId: string, isFavorite: boolean) => {
-    if (isFavorite) {
-      await removeFromFavorites(planetId);
+  const toggleFavorite = async (planet: InPlanet) => {
+    if (planet.isFavorite) {
+      await removeFromFavorites(planet);
     } else {
-      await addToFavorites(planetId, isFavorite);
+      await addToFavorites(planet);
     }
   };
 
@@ -96,9 +98,12 @@ export const PlanetProvider = ({children}: any) => {
         planetList,
         setPlanetList,
         loadPlanets,
+        addToFavorites,
+        removeFromFavorites,
         toggleFavorite,
         getFavorites,
-      }}>
+      }}
+    >
       {children}
     </PlanetContext.Provider>
   );
